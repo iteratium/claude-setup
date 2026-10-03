@@ -1,160 +1,61 @@
-# Global CLAUDE.md Build Instructions
+# Claude Setup Bootstrap
 
-This file is a template. When you (Claude) read it, follow the instructions below
-to generate your own `CLAUDE.md`. Do NOT modify this file; it is the source of
-truth for how your `CLAUDE.md` should be structured and what it must contain.
+You (Claude) are setting up your own user-level configuration on this machine
+from this repo. Run the steps in order. Every step is idempotent: re-running
+this file updates the setup in place, so skip work whose result is already
+current and never duplicate content. Creating and updating the files listed
+below is the expected result of this request; no per-file confirmation needed.
 
-Each numbered instruction below performs one concrete step — adding a section or
-supporting file, or completing a required check. Only complete the instructions
-defined here.
+What gets installed (target dir: `$CLAUDE_CONFIG_DIR`, default `~/.claude`):
 
-Idempotency: if you re-read this template, skip any step whose output already
-exists and is current; never duplicate or re-append sections. The setup files
-this template creates (`system-info.md`, `CLAUDE.md`, and their sections) are
-exempt from the modification-confirmation rule in Instruction 5 — they may be
-created and regenerated freely.
+| Source | Target | How |
+|---|---|---|
+| `files/CLAUDE.template.md` | `CLAUDE.md` | `install.sh` (keeps generated toolchain block) |
+| `files/settings.json` | `settings.json` | `install.sh` deep-merges into existing settings |
+| `files/hooks/guard-bash.sh` | `hooks/guard-bash.sh` | `install.sh` |
+| `files/skills/*` | `skills/*` | `install.sh` |
+| — | toolchain block in `CLAUDE.md` | Step 3 (you generate) |
 
----
+Hard rules live in `settings.json` and the hook, not in prose. Don't restate
+them in `CLAUDE.md`, and never set `permissions.defaultMode`; that's the
+user's choice.
 
-## Instruction 1 — Writing the CLAUDE.md File
+## Step 1: Prerequisites
 
-This instruction governs how *all* output is written; apply it throughout.
+Check: `jq`, `gh` (also `gh auth status`), `rg` (a Claude Code shell function
+counts as present).
 
-The global `CLAUDE.md` is read by Claude on every session, so it must be as
-short as possible to conserve tokens. It is meant for Claude, not for humans:
+For anything missing or unauthenticated: show the install/auth command for this
+system's package manager and run it only after the user approves, or let them
+run it with `! <command>`. If declined, note it and continue, except for `jq`:
+the hook blocks all Bash without it, so stop setup if `jq` is declined.
 
-- Write concise directives, not prose. No explanations, exposition, rationale,
-  or pleasantries.
-- Prefer terse rules and short lists. Drop articles and filler words where
-  meaning stays clear.
-- Omit the "how" when Claude already knows it; state only the rule.
-- Link to detail files (e.g. `system-info.md`) rather than inlining content.
+## Step 2: Install files
 
-Assemble `CLAUDE.md` with clear headers in this section order: System
-Information, Toolchain Preferences, Permitted Actions, Secrets & Sensitive Data,
-Git Workflow, Error Handling & Dry-run. Keep each section minimal per the rules
-above.
+1. Run `./install.sh --dry-run` and summarise the changes for the user.
+2. If an existing `CLAUDE.md` has content not from this repo's template, or
+   existing settings would change beyond the added keys, show what will be
+   replaced (backups are kept as `<file>.bak.<timestamp>`) and get approval.
+3. Run `./install.sh`. It ends by running the hook test suite; all cases must
+   pass. On failure, stop and report the failing cases.
 
-## Instruction 2 — System Information
+## Step 3: Toolchain block
 
-Collect the following host OS and hardware details, save them to
-`system-info.md` alongside `CLAUDE.md`, then add a short section in `CLAUDE.md`
-that links to that file.
+Detect, don't assume (the `system-info` skill gives OS details). Replace
+everything between the `BEGIN toolchain` and `END toolchain` markers in `<target>/CLAUDE.md` with at most 6 lines that
+record only choices Claude couldn't guess:
 
-Information to collect:
+- System package manager to use (e.g. `dnf`, `apt`, `brew`)
+- Default language runtimes/versions when several are installed
+- Container runtime and how to invoke it (e.g. podman, not docker)
+- Default shell, if not bash
 
-- Operating System: distribution name and version, kernel version, architecture
-- Processor (CPU): model name, number of physical cores, number of threads /
-  logical CPUs, clock speeds
-- Memory (RAM): total system memory
-- GPU & VRAM: vendor and model, dedicated VRAM, driver in use
+Style: terse directives ("Packages: use dnf"), no prose, no raw paths or
+version dumps. This file loads every session; every line costs context.
 
-If any item is not present or not applicable (e.g. no discrete GPU), state that
-clearly. Keep the full details in `system-info.md`; in `CLAUDE.md` only add a
-short "System Information" section that links to it.
+## Step 4: Finish
 
-## Instruction 3 — Required Tools
-
-Check whether the following tools are installed:
-
-- GitHub CLI (`gh`) — must also be authenticated
-- ripgrep (`rg`)
-
-For each one that is installed (and, for `gh`, authenticated), do nothing. For
-any that is missing or not ready, install or authenticate it only after explicit
-confirmation from the user: show the command, get approval, then run it (or let
-the user run it themselves). If the user declines, stop and note that the tool is
-unavailable; do not loop or nag.
-
-## Instruction 4 — Toolchain Preferences
-
-Explore the available toolchain on this system, then write concise toolchain
-preferences into `CLAUDE.md` so the right tools are used by default. Detect
-rather than hardcode, so this template stays portable across systems.
-
-Detect and record (only those that apply):
-
-- System package manager to prefer (e.g. dnf/apt/brew)
-- Language runtimes present and their versions, and which to use by default
-- Container runtime present (e.g. podman/docker) and how to invoke it
-- Default shell
-
-Keep this section terse in `CLAUDE.md`: short "use X" directives, not raw
-versions or paths.
-
-## Instruction 5 — Permitted Actions
-
-Add a section to `CLAUDE.md` that defines the action categories below. These
-rules are strict and take precedence over project-level rules and other
-defaults, but yield to an explicit user override. Where multiple rules could
-apply, the strictest one wins. (Setup files created by this template are
-exempt — see the Idempotency note above.)
-
-### Destructive actions — strictly forbidden
-
-Claude must never run these itself, under any circumstance. For each such
-action, hand it to the user instead: provide the exact command and a single
-sentence explaining what it does. At minimum this covers:
-
-- Deleting or removing files or directories
-- Uninstalling, downgrading, or otherwise removing packages/software
-- Any other permanently destructive or irreversible operation (non-git)
-
-### Modification actions — allowed on explicit confirmation
-
-Claude may perform modification-type actions only after explicit confirmation
-from the user. This applies to modifications Claude takes on its own initiative
-or that are bulk/non-trivial; edits that are the direct, expected result of the
-current user request proceed without per-edit confirmation. At minimum this
-covers:
-
-- Updating files or content
-- Overwriting existing files
-- Moving or renaming files
-- Other actions that alter existing state
-
-### GitHub / Git actions
-
-Claude may perform the following only after explicit confirmation from the
-user:
-
-- Creating branches, commits, and pull requests
-- Pushing commits
-- Pruning (deleting) non-`main` branches
-- Force-push or history-rewrite on non-`main` branches
-
-Strictly forbidden: any destructive git command on the `main` branch, including
-anything that could cause `main` to be deleted, force-pushed, or rewritten.
-
-## Instruction 6 — Secrets & Sensitive Data
-
-Add a section to `CLAUDE.md` governing secrets and sensitive data:
-
-- Never commit, push, or paste secrets, keys, tokens, or `.env`/credential
-  files.
-- Never echo or print secret values into commands, output, or logs.
-- Warn the user immediately if you notice a secret has been or is about to be
-  leaked, so they can take action (e.g. rotate/revoke it).
-- Refuse or hand off any action that would expose secrets.
-
-## Instruction 7 — Git Workflow
-
-Add a short Git Workflow section to `CLAUDE.md` with light global defaults:
-
-- Commit messages: conventional-commits style (`type: summary`) with a short
-  body when useful.
-- Branch names: short, descriptive, kebab-case.
-- Never amend or rebase shared/remote branches others may be using.
-
-Project-level files may override these.
-
-## Instruction 8 — Error Handling & Dry-run
-
-Add a short section to `CLAUDE.md`:
-
-- Read command errors fully and understand them before retrying; don't blindly
-  re-run.
-- Don't guess file paths or contents; look them up.
-- Prefer `--dry-run` where a command supports it; show what an unfamiliar
-  command will do before running it.
-- When unsure, ask the user.
+Report a short table of each step: done, skipped (already current), or blocked
+(why). Tell the user to start a new Claude Code session so the hook and
+permission rules load, and that `/hooks`, `/permissions` and `/skills` show
+them.
