@@ -24,8 +24,8 @@ user's choice.
 
 ## Step 1: Prerequisites
 
-Check: `jq`, `gh` (also `gh auth status`), `rg` (a Claude Code shell function
-counts as present), and on Linux `pkexec` (polkit). Without `pkexec`, root
+Check: `jq`, `node` (Ponytail plugin hooks run on it), `gh` (also
+`gh auth status`), `rg` (a Claude Code shell function counts as present), and on Linux `pkexec` (polkit). Without `pkexec`, root
 commands get handed to the user instead; mention that, it isn't a blocker.
 
 For anything missing or unauthenticated: show the install/auth command for this

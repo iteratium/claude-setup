@@ -10,7 +10,7 @@ claude
 > Set yourself up using meta-template.md
 ```
 
-Claude checks prerequisites (`jq`, `gh`, `rg`), runs `install.sh`, fills in
+Claude checks prerequisites (`jq`, `node`, `gh`, `rg`), runs `install.sh`, fills in
 the toolchain section, then reports what it did. Re-run
 the same prompt any time to update; it's idempotent.
 

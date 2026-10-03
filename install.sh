@@ -91,6 +91,7 @@ plugins=(
 if ! command -v claude >/dev/null; then
   echo "skipped    plugins (claude CLI not on PATH)"
 else
+  command -v node >/dev/null || echo "warning    node not on PATH; Ponytail hooks will fail (dnf install nodejs)" >&2
   have_mkts=$(claude plugin marketplace list --json | jq -r '.[].name')
   have_plugins=$(claude plugin list --json | jq -r '.[].id')
   for entry in "${plugins[@]}"; do
