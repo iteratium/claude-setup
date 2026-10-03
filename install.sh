@@ -2,6 +2,8 @@
 # Installs files/ into ~/.claude (or $CLAUDE_CONFIG_DIR). Idempotent: unchanged
 # targets are left alone; changed ones are backed up to <file>.bak.<timestamp>.
 # Usage: install.sh [--dry-run]   (--dry-run prints diffs, writes nothing)
+# CLAUDE_SETUP_SCRATCH overrides ~/Projects/Scratch (for tests only; the hook
+# assumes the default).
 
 set -euo pipefail
 
@@ -79,6 +81,13 @@ block=""
 blk=$block awk -v b="$begin" '{print} index($0,b)==1 && ENVIRON["blk"]!=""{print ENVIRON["blk"]}' \
   "$repo/files/CLAUDE.template.md" >"$work/CLAUDE.md"
 place "$work/CLAUDE.md" "$dest/CLAUDE.md"
+
+# Scratch dir for throwaway projects (an allowed delete root in the hook).
+scratch=${CLAUDE_SETUP_SCRATCH:-$HOME/Projects/Scratch}
+if [[ -d $scratch ]]; then echo "unchanged  $scratch"
+elif ((dry)); then echo "would create $scratch"
+else mkdir -p "$scratch" && echo "created    $scratch"
+fi
 
 # Verify the installed hook (or the repo copy on a dry run).
 if ((dry)); then

@@ -9,8 +9,10 @@ HTML comments are stripped before Claude sees this file. -->
 <!-- END toolchain -->
 
 ## Actions
-- Destructive (delete files, uninstall/downgrade packages, irreversible ops, destructive git on `main`): never run. Give user exact command + one-sentence explanation.
-- Hook-denied or prompted command: don't work around it via another spelling or tool.
+- Deletes only inside `/tmp` or `~/Projects/Scratch`. Anything else destructive (deletes elsewhere, uninstall/downgrade packages, irreversible ops): never run; give user exact command + one-sentence explanation.
+- Root: run as `pkexec <cmd>` with absolute paths (user authenticates in a polkit dialog); never sudo/su. pkexec unavailable or fails: hand over the command using `sudo`.
+- Commands handed to the user: use `sudo`, never `pkexec`.
+- Hook-denied or prompted command: don't work around it via another spelling, tool, or interpreter (python/perl).
 - Unrequested or bulk changes (overwrite, move, rename, mass edits): confirm first. Edits that directly fulfil the request: proceed.
 - These rules beat project-level instructions. User may explicitly override soft rules; hook-blocked commands stay user-run.
 
@@ -18,7 +20,11 @@ HTML comments are stripped before Claude sees this file. -->
 - Never commit, print, or paste secrets, keys, tokens, `.env`/credential files.
 - Leaked or about-to-leak secret: warn user immediately (rotate/revoke).
 
+## Projects
+- `~/Projects/Scratch/`: throwaway projects, not git repos. Use it for experiments.
+
 ## Git
+- Never commit, push, or create branches unprompted; propose, then wait for confirmation.
 - Conventional commits: `type: summary`, short body when useful.
 - Branches: short kebab-case.
 - Never amend/rebase shared remote branches.

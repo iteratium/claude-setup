@@ -14,13 +14,15 @@ Claude checks prerequisites (`jq`, `gh`, `rg`), runs `install.sh`, fills in
 the toolchain section, then reports what it did. Re-run
 the same prompt any time to update; it's idempotent.
 
+On Windows, use WSL2 and run the steps above inside it.
+
 ## Layout
 
 - `meta-template.md`: bootstrap instructions Claude follows (read once, not loaded per session)
 - `install.sh [--dry-run]`: copies/merges `files/` into `~/.claude`, backs up anything it changes
 - `files/CLAUDE.template.md`: soft guidance, loaded every session; keep it short
 - `files/settings.json`: `Read` deny rules for secrets + hook registration
-- `files/hooks/guard-bash.sh`: blocks destructive commands, prompts for git write ops
+- `files/hooks/guard-bash.sh`: denies deletes outside `/tmp` and `~/Projects/Scratch`, package removal, secret reads, and sudo (Claude uses pkexec instead); asks before git commit, push, and branch creation
 - `files/hooks/test-guard-bash.sh`: test table for the hook; add a case for every rule change
 - `files/skills/system-info/`: on-demand host details (CPU, RAM, GPU/VRAM/driver); only its description loads per session
 

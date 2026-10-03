@@ -14,6 +14,7 @@ What gets installed (target dir: `$CLAUDE_CONFIG_DIR`, default `~/.claude`):
 | `files/settings.json` | `settings.json` | `install.sh` deep-merges into existing settings |
 | `files/hooks/guard-bash.sh` | `hooks/guard-bash.sh` | `install.sh` |
 | `files/skills/*` | `skills/*` | `install.sh` |
+| — | `~/Projects/Scratch/` | `install.sh` creates it |
 | — | toolchain block in `CLAUDE.md` | Step 3 (you generate) |
 
 Hard rules live in `settings.json` and the hook, not in prose. Don't restate
@@ -23,7 +24,8 @@ user's choice.
 ## Step 1: Prerequisites
 
 Check: `jq`, `gh` (also `gh auth status`), `rg` (a Claude Code shell function
-counts as present).
+counts as present), and on Linux `pkexec` (polkit). Without `pkexec`, root
+commands get handed to the user instead; mention that, it isn't a blocker.
 
 For anything missing or unauthenticated: show the install/auth command for this
 system's package manager and run it only after the user approves, or let them
