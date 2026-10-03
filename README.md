@@ -19,7 +19,7 @@ On Windows, use WSL2 and run the steps above inside it.
 ## Layout
 
 - `meta-template.md`: bootstrap instructions Claude follows (read once, not loaded per session)
-- `install.sh [--dry-run]`: copies/merges `files/` into `~/.claude`, backs up anything it changes
+- `install.sh [--dry-run]`: copies/merges `files/` into `~/.claude`, backs up anything it changes, and installs the plugins in its `plugins` list ([Ponytail](https://github.com/dietrichgebert/ponytail), [Agent Skills](https://github.com/addyosmani/agent-skills)) if missing
 - `files/CLAUDE.template.md`: soft guidance, loaded every session; keep it short
 - `files/settings.json`: `Read` deny rules for secrets + hook registration
 - `files/hooks/guard-bash.sh`: denies deletes outside `/tmp`, `$TMPDIR` and `~/Projects/Scratch`, package removal, secret reads, and sudo/su/run0 (Claude uses pkexec instead); asks before git commit, push, branch creation, and git/gh commands that discard work or delete refs (`reset --hard`, `restore`, `branch -D`, `stash drop`, `gh pr merge`, ...)

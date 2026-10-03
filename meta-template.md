@@ -15,6 +15,7 @@ What gets installed (target dir: `$CLAUDE_CONFIG_DIR`, default `~/.claude`):
 | `files/hooks/guard-bash.sh` | `hooks/guard-bash.sh` | `install.sh` |
 | `files/skills/*` | `skills/*` | `install.sh` |
 | — | `~/Projects/Scratch/` | `install.sh` creates it |
+| `plugins` list in `install.sh` | Ponytail, Agent Skills (user scope) | `install.sh` adds marketplaces + installs via `claude plugin` |
 | — | toolchain block in `CLAUDE.md` | Step 3 (you generate) |
 
 Hard rules live in `settings.json` and the hook, not in prose. Don't restate

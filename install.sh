@@ -82,6 +82,32 @@ blk=$block awk -v b="$begin" '{print} index($0,b)==1 && ENVIRON["blk"]!=""{print
   "$repo/files/CLAUDE.template.md" >"$work/CLAUDE.md"
 place "$work/CLAUDE.md" "$dest/CLAUDE.md"
 
+# Plugins: "<marketplace GitHub repo> <plugin>@<marketplace name>". Already
+# installed ones are left alone; `claude plugin update` refreshes them.
+plugins=(
+  "dietrichgebert/ponytail ponytail@ponytail"
+  "addyosmani/agent-skills agent-skills@addy-agent-skills"
+)
+if ! command -v claude >/dev/null; then
+  echo "skipped    plugins (claude CLI not on PATH)"
+else
+  have_mkts=$(claude plugin marketplace list --json | jq -r '.[].name')
+  have_plugins=$(claude plugin list --json | jq -r '.[].id')
+  for entry in "${plugins[@]}"; do
+    read -r repo_src id <<<"$entry"
+    mkt=${id#*@}
+    if ! grep -qxF "$mkt" <<<"$have_mkts"; then
+      if ((dry)); then echo "would add  marketplace $mkt ($repo_src)"
+      else claude plugin marketplace add "$repo_src" >/dev/null && echo "added      marketplace $mkt"
+      fi
+    fi
+    if grep -qxF "$id" <<<"$have_plugins"; then echo "unchanged  plugin $id"
+    elif ((dry)); then echo "would install plugin $id"
+    else claude plugin install "$id" --scope user >/dev/null && echo "installed  plugin $id"
+    fi
+  done
+fi
+
 # Scratch dir for throwaway projects (an allowed delete root in the hook).
 scratch=${CLAUDE_SETUP_SCRATCH:-$HOME/Projects/Scratch}
 if [[ -d $scratch ]]; then echo "unchanged  $scratch"
