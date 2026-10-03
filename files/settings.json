@@ -1,0 +1,46 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(!.env.example)",
+      "Read(!.env.sample)",
+      "Read(!.env.template)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.aws/credentials)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.kube/config)",
+      "Read(~/.netrc)",
+      "Read(~/.pgpass)",
+      "Read(~/.git-credentials)",
+      "Read(~/.npmrc)",
+      "Read(~/.pypirc)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.vault-token)",
+      "Read(~/.password-store/**)",
+      "Read(*.pem)",
+      "Read(*.key)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-bash.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
