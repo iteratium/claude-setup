@@ -13,14 +13,21 @@ linux() {
   line "Arch" "$(uname -m)"
 
   if have lscpu; then
-    local model sockets cores threads maxmhz
-    model=$(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)
-    sockets=$(lscpu | sed -n 's/^Socket(s):[[:space:]]*//p' | head -1)
-    cores=$(lscpu | sed -n 's/^Core(s) per socket:[[:space:]]*//p' | head -1)
+    local info model sockets cores threads maxmhz
+    info=$(lscpu 2>/dev/null)
+    model=$(sed -n 's/^Model name:[[:space:]]*//p' <<<"$info" | head -1)
+    # ARM reports "Socket(s): -" and "Core(s) per cluster" instead.
+    sockets=$(sed -n 's/^Socket(s):[[:space:]]*//p' <<<"$info" | head -1)
+    cores=$(sed -n 's/^Core(s) per \(socket\|cluster\):[[:space:]]*//p' <<<"$info" | head -1)
     threads=$(nproc 2>/dev/null)
-    maxmhz=$(lscpu | sed -n 's/^CPU max MHz:[[:space:]]*//p' | head -1)
+    maxmhz=$(sed -n 's/^CPU max MHz:[[:space:]]*//p' <<<"$info" | head -1)
+    [[ $sockets =~ ^[0-9]+$ ]] || sockets=1
     line "CPU" "$model"
-    line "CPU cores/threads" "$(( ${sockets:-1} * ${cores:-0} )) cores / ${threads} threads"
+    if [[ $cores =~ ^[0-9]+$ ]]; then
+      line "CPU cores/threads" "$((sockets * cores)) cores / ${threads} threads"
+    else
+      line "CPU threads" "$threads"
+    fi
     [[ -n $maxmhz ]] && line "CPU max clock" "${maxmhz%.*} MHz"
   else
     line "CPU" "$(sed -n 's/^model name[[:space:]]*:[[:space:]]*//p' /proc/cpuinfo | head -1)"

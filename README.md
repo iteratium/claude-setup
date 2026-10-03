@@ -22,7 +22,7 @@ On Windows, use WSL2 and run the steps above inside it.
 - `install.sh [--dry-run]`: copies/merges `files/` into `~/.claude`, backs up anything it changes
 - `files/CLAUDE.template.md`: soft guidance, loaded every session; keep it short
 - `files/settings.json`: `Read` deny rules for secrets + hook registration
-- `files/hooks/guard-bash.sh`: denies deletes outside `/tmp` and `~/Projects/Scratch`, package removal, secret reads, and sudo (Claude uses pkexec instead); asks before git commit, push, and branch creation
+- `files/hooks/guard-bash.sh`: denies deletes outside `/tmp`, `$TMPDIR` and `~/Projects/Scratch`, package removal, secret reads, and sudo/su/run0 (Claude uses pkexec instead); asks before git commit, push, branch creation, and git/gh commands that discard work or delete refs (`reset --hard`, `restore`, `branch -D`, `stash drop`, `gh pr merge`, ...)
 - `files/hooks/test-guard-bash.sh`: test table for the hook; add a case for every rule change
 - `files/skills/system-info/`: on-demand host details (CPU, RAM, GPU/VRAM/driver); only its description loads per session
 
