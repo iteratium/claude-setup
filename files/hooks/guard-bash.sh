@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # PreToolUse hook for the Bash tool.
 #   deny: deletes outside the allowed roots (/tmp, $TMPDIR, ~/Projects/Scratch),
-#         package removal, disk wiping, reading secret files, sudo/su/run0 (use pkexec)
+#         package removal, disk wiping, reading secret files, sudo/su/run0 (use pkexec),
+#         pass-cli commands that print secret values (also inside ssh)
 #   ask:  git commit, git push, branch creation, gh pr create, and git/gh commands
 #         that discard work or delete refs (reset --hard, restore, branch -D,
 #         stash drop, push --force, gh pr merge, ...)
@@ -33,6 +34,8 @@ done
 HANDOFF="Do not run this or work around it. Hand it to the user: give the exact command (with sudo, not pkexec, if it needs root) and one sentence on what it does, for them to run in their own terminal."
 SECRET_RE='(^|[/[:space:]=@:])\.env(\.[[:alnum:]_-]+)?([[:space:]]|$)|\.ssh/|(^|[/[:space:]=@:])id_(rsa|dsa|ecdsa|ed25519)([[:space:]]|$)|\.aws/credentials|\.gnupg/|\.netrc|\.pgpass|\.config/gh/hosts\.yml|\.docker/config\.json|\.kube/config|\.git-credentials|\.npmrc|\.pypirc|\.claude/\.credentials\.json|\.config/gcloud/|\.azure/|\.vault-token|\.password-store/|\.local/share/keyrings/|[^/[:space:]]\.(pem|key|p12|pfx)([[:space:]]|$)'
 SECRET_OK_RE='\.env\.(example|sample|template)([[:space:]]|$)'
+# pass-cli subcommands that print secrets, and run without masking.
+PASS_RE='(^|[^[:alnum:]_-])pass-cli[[:space:]]+(item[[:space:]]+(view|totp)|totp|password[[:space:]]+generate|inject)([[:space:]]|$)|(^|[^[:alnum:]_-])pass-cli[[:space:]]+run[[:space:]].*--no-masking'
 
 CWD=$(cd -P "$start_cwd" 2>/dev/null && pwd -P)  # effective cwd; "" = unknown
 ask_reasons=()
@@ -425,6 +428,9 @@ check_words() {
       [[ $argstr =~ \ pr\ +merge\  ]] && ask "gh pr merge"
       [[ $argstr =~ \ [a-z-]+\ +delete\  ]] && ask "gh $sub delete"
       [[ $argstr =~ \ (-X\ ?|--method[\ =])(DELETE|delete)\  ]] && ask "gh api DELETE" ;;
+    pass-cli | ssh)
+      # ssh's remote command is one string, so it is matched as text, not lexed.
+      [[ "$prog$argstr" =~ $PASS_RE ]] && deny "'pass-cli' printing secret values." ;;
   esac
 
   # Secrets: deny naming a secret file, unless the program only touches metadata.

@@ -132,6 +132,22 @@ check none "$P" 'git status .env'
 check ask "$P" 'git commit -m "docs: mention .env and id_rsa"'
 check none "$P" 'cat README.md'
 
+# --- pass-cli: deny commands that print secret values, even over ssh ---
+check deny "$P" 'pass-cli item view --vault-name Infra --item-title cloudflare'
+check deny "$P" '~/.local/bin/pass-cli item totp --item-title github'
+check deny "$P" 'pass-cli totp generate otpauth://x'
+check deny "$P" 'pass-cli password generate'
+check deny "$P" 'pass-cli inject -i tpl.env -o out.env'
+check deny "$P" 'pass-cli run --no-masking -- env'
+check deny "$P" "ssh op3000 'pass-cli item view --item-title x'"
+check deny "$P" "ssh -p 22 op3000 \"cd x && pass-cli run --no-masking -- tofu plan\""
+check deny "$P" "pass-cli run -- sh -c 'pass-cli item view x'"
+check none "$P" 'pass-cli info'
+check none "$P" 'pass-cli vault list'
+check none "$P" 'pass-cli run -- tofu plan'
+check none "$P" "ssh op3000 'pass-cli --version; pass-cli info'"
+check none "$P" 'rg "pass-cli item view" docs/'
+
 # --- git: ask for commit, push, branch creation, and discarding work ---
 check ask "$P" 'git commit -m "feat: x"'
 check ask "$P" 'git commit --amend --no-edit'
