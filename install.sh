@@ -87,6 +87,7 @@ place "$work/CLAUDE.md" "$dest/CLAUDE.md"
 plugins=(
   "dietrichgebert/ponytail ponytail@ponytail"
   "addyosmani/agent-skills agent-skills@addy-agent-skills"
+  "JuliusBrussee/caveman caveman@caveman"
 )
 if ! command -v claude >/dev/null; then
   echo "skipped    plugins (claude CLI not on PATH)"
